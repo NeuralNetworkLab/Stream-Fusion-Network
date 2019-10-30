@@ -69,7 +69,7 @@ def main():
         data_length = 5
 
     elif args.modality in ['OneModel']:
-        data_length = 1
+        data_length = 5
 
     train_loader = torch.utils.data.DataLoader(
         TSNDataSet_one_model("", args.train_list, num_segments=args.num_segments,

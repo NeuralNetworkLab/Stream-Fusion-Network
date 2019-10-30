@@ -168,7 +168,7 @@ class TSNDataSet_one_model(data.Dataset):
 
     def _get_val_indices(self, record):
         if record.num_frames > self.num_segments + self.sample_stride*self.new_length - 1:
-            tick = (record.num_frames - self.new_length + 1) / float(self.num_segments)
+            tick = (record.num_frames -self.sample_stride* self.new_length + 1) / float(self.num_segments)
             offsets = np.array([int(tick / 2.0 + tick * x) for x in range(self.num_segments)])
         else:
             offsets = np.zeros((self.num_segments,))
@@ -176,7 +176,7 @@ class TSNDataSet_one_model(data.Dataset):
 
     def _get_test_indices(self, record):
 
-        tick = (record.num_frames - self.new_length + 1) / float(self.num_segments)
+        tick = (record.num_frames -self.sample_stride* self.new_length + 1) / float(self.num_segments)
 
         offsets = np.array([int(tick / 2.0 + tick * x) for x in range(self.num_segments)])
 

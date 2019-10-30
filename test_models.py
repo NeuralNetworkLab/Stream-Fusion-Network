@@ -71,7 +71,7 @@ else:
 if args.modality=="OneModel":
     data_loader=torch.utils.data.DataLoader(
         TSNDataSet_one_model("", args.test_list, num_segments=args.test_segments,
-                   new_length=1,
+                   new_length=5,
                    modality=args.modality,
                    image_tmpl="img_{:05d}.jpg",
                    test_mode=True,
@@ -125,14 +125,13 @@ def eval_video(video_data):
     elif args.modality == 'RGBDiff':
         length = 18
     elif args.modality == 'OneModel':
-        length = 5
+        length = 25
     else:
         raise ValueError("Unknown modality "+args.modality)
-
-    input_var = torch.autograd.Variable(data.view(-1, length, data.size(2), data.size(3)),
-                                        volatile=True)
-    rst = net(input_var).data.cpu().numpy().copy()
-    return i, rst.reshape((num_crop, args.test_segments, num_class)).mean(axis=0).reshape(
+    with torch.no_grad():
+        input_var = torch.autograd.Variable(data.view(-1, length, data.size(2), data.size(3)))
+        rst = net(input_var).data.cpu().numpy().copy()
+        return i, rst.reshape((num_crop, args.test_segments, num_class)).mean(axis=0).reshape(
         (args.test_segments, 1, num_class)
     ), label[0]
 
