@@ -60,6 +60,7 @@ class GroupRandomHorizontalFlip(object):
         else:
             return img_group
 
+
 class GroupRandomHorizontalFlip_OneModel(object):
     """Randomly horizontally flips the given PIL.Image with a probability of 0.5
     """
@@ -72,11 +73,12 @@ class GroupRandomHorizontalFlip_OneModel(object):
         if v < 0.5:
             ret = [img.transpose(Image.FLIP_LEFT_RIGHT) for img in img_group]
             if self.is_flow:
-                for i in range(0, len(ret), 3):
-                    ret[i+1] = ImageOps.invert(ret[i+1])  # invert flow pixel values when flipping (just apply to x_low)
+                for i in range(3, len(ret), 2):
+                    ret[i] = ImageOps.invert(ret[i])  # invert flow pixel values when flipping (just apply to x_low)
             return ret
         else:
             return img_group
+
 
 class GroupNormalize(object):
     def __init__(self, mean, std):
@@ -286,18 +288,18 @@ class Stack(object):
 
 class StackAll(object):
 
-    def __init__(self, roll=False):
+    def __init__(self, roll=True):
         self.roll = roll
 
     def __call__(self, img_group):
-        x_list=[]
+        x_list = []
         for img in img_group:
             if img.mode == 'L':
-                x=np.expand_dims(img, 2)
+                x = np.expand_dims(img, 2)
             elif img_group[0].mode == 'RGB':
-                x=np.array(img)[:, :, ::-1]
+                x = np.array(img)[:, :, ::-1]
             x_list.append(x)
-        return np.concatenate(x_list,axis=2)
+        return np.concatenate(x_list, axis=2)
 
 
 class ToTorchFormatTensor(object):

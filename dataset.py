@@ -6,6 +6,7 @@ import os.path
 import numpy as np
 from numpy.random import randint
 
+
 class VideoRecord(object):
     def __init__(self, row):
         self._data = row
@@ -40,7 +41,7 @@ class TSNDataSet(data.Dataset):
         self.test_mode = test_mode
 
         if self.modality == 'RGBDiff':
-            self.new_length += 1# Diff needs one more image to calculate diff
+            self.new_length += 1  # Diff needs one more image to calculate diff
 
         self._parse_list()
 
@@ -49,7 +50,7 @@ class TSNDataSet(data.Dataset):
             return [Image.open(os.path.join(directory, self.image_tmpl.format(idx))).convert('RGB')]
         elif self.modality == 'Flow':
             x_img = Image.open(os.path.join(directory, self.image_tmpl.format('x', idx))).convert('L')
-            y_img = Image.open(os.path.join(directory, self.image_tmpl.format('y', idx))).convert('L')           
+            y_img = Image.open(os.path.join(directory, self.image_tmpl.format('y', idx))).convert('L')
 
             return [x_img, y_img]
 
@@ -65,7 +66,8 @@ class TSNDataSet(data.Dataset):
 
         average_duration = (record.num_frames - self.new_length + 1) // self.num_segments
         if average_duration > 0:
-            offsets = np.multiply(list(range(self.num_segments)), average_duration) + randint(average_duration, size=self.num_segments)
+            offsets = np.multiply(list(range(self.num_segments)), average_duration) + randint(average_duration,
+                                                                                              size=self.num_segments)
         elif record.num_frames > self.num_segments:
             offsets = np.sort(randint(record.num_frames - self.new_length + 1, size=self.num_segments))
         else:
@@ -119,7 +121,7 @@ class TSNDataSet(data.Dataset):
 class TSNDataSet_one_model(data.Dataset):
     def __init__(self, root_path, list_file,
                  num_segments=3, new_length=1, modality='OneModel',
-                 image_tmpl='img_{:05d}.jpg', transform=None,
+                 image_tmpl='img_{:05d}.jpg',transform=None,
                  force_grayscale=False, random_shift=True, test_mode=False):
 
         self.root_path = root_path
@@ -131,20 +133,25 @@ class TSNDataSet_one_model(data.Dataset):
         self.transform = transform
         self.random_shift = random_shift
         self.test_mode = test_mode
-        self.flow_tmpl='flow_{}_{:05d}.jpg'
-        self.sample_stride=1
+        self.flow_tmpl = 'flow_{}_{:05d}.jpg'
+        self.sample_stride = 1
 
         if self.modality == 'RGBDiff':
-            self.new_length += 1   # Diff needs one more image to calculate diff
+            self.new_length += 1  # Diff needs one more image to calculate diff
 
         self._parse_list()
 
     def _load_image(self, directory, idx):
 
-        img=Image.open(os.path.join(directory, self.image_tmpl.format(idx))).convert('RGB')
-        x_flow= Image.open(os.path.join(directory, self.flow_tmpl.format('x', idx))).convert('L')
+        img = Image.open(os.path.join(directory, self.image_tmpl.format(idx))).convert('RGB')
+        x_flow = Image.open(os.path.join(directory, self.flow_tmpl.format('x', idx))).convert('L')
         y_flow = Image.open(os.path.join(directory, self.flow_tmpl.format('y', idx))).convert('L')
         return [img, x_flow, y_flow]
+
+    def _load_flow(self, directory, idx):
+        x_flow = Image.open(os.path.join(directory, self.flow_tmpl.format('x', idx))).convert('L')
+        y_flow = Image.open(os.path.join(directory, self.flow_tmpl.format('y', idx))).convert('L')
+        return [x_flow, y_flow]
 
     def _parse_list(self):
         self.video_list = [VideoRecord(x.strip().split(' ')) for x in open(self.list_file)]
@@ -156,19 +163,21 @@ class TSNDataSet_one_model(data.Dataset):
         :return: list
         """
 
-        average_duration = (record.num_frames - self.sample_stride*self.new_length + 1) // self.num_segments
+        average_duration = (record.num_frames - self.sample_stride * self.new_length + 1) // self.num_segments
         # random sample
         if average_duration > 0:
-            offsets = np.multiply(list(range(self.num_segments)), average_duration) + randint(average_duration, size=self.num_segments)
-        elif record.num_frames > self.num_segments+ self.sample_stride* self.new_length:
-            offsets = np.sort(randint(record.num_frames - self.sample_stride* self.new_length + 1, size=self.num_segments))
+            offsets = np.multiply(list(range(self.num_segments)), average_duration) + randint(average_duration,
+                                                                                              size=self.num_segments)
+        elif record.num_frames > self.num_segments + self.sample_stride * self.new_length:
+            offsets = np.sort(
+                randint(record.num_frames - self.sample_stride * self.new_length + 1, size=self.num_segments))
         else:
-            offsets = np.zeros((self.num_segments,))   # select first frame for each segment
+            offsets = np.zeros((self.num_segments,))  # select first frame for each segment
         return offsets + 1
 
     def _get_val_indices(self, record):
-        if record.num_frames > self.num_segments + self.sample_stride*self.new_length - 1:
-            tick = (record.num_frames -self.sample_stride* self.new_length + 1) / float(self.num_segments)
+        if record.num_frames > self.num_segments + self.sample_stride * self.new_length - 1:
+            tick = (record.num_frames - self.sample_stride * self.new_length + 1) / float(self.num_segments)
             offsets = np.array([int(tick / 2.0 + tick * x) for x in range(self.num_segments)])
         else:
             offsets = np.zeros((self.num_segments,))
@@ -176,7 +185,7 @@ class TSNDataSet_one_model(data.Dataset):
 
     def _get_test_indices(self, record):
 
-        tick = (record.num_frames -self.sample_stride* self.new_length + 1) / float(self.num_segments)
+        tick = (record.num_frames - self.sample_stride * self.new_length + 1) / float(self.num_segments)
 
         offsets = np.array([int(tick / 2.0 + tick * x) for x in range(self.num_segments)])
 
@@ -193,18 +202,23 @@ class TSNDataSet_one_model(data.Dataset):
         return self.get(record, segment_indices)
 
     def get(self, record, indices):
-
-        images = list()
+        # indices : the index of each segmental snapshoot
+        imgs = list()
         for seg_ind in indices:
             p = int(seg_ind)
-            for i in range(self.new_length):
-                seg_imgs = self._load_image(record.path, p)
-                images.extend(seg_imgs)
-                if p < record.num_frames-self.sample_stride:
-                    p = p+self.sample_stride
+            img = self._load_image(record.path, p)
+            imgs.extend(img)
+            if p < record.num_frames - self.sample_stride:
+                p = p + self.sample_stride
+            for i in range(1, self.new_length):
 
-        process_data = self.transform(images)
-        return process_data, record.label
+                flow = self._load_flow(record.path, p)
+                imgs.extend(flow)
+                if p < record.num_frames - self.sample_stride:
+                    p = p + self.sample_stride
+
+        imgs_data = self.transform(imgs)
+        return imgs_data, record.label
 
     def __len__(self):
         return len(self.video_list)

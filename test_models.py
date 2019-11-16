@@ -47,6 +47,7 @@ else:
 
 net = TSN(num_class, 1, args.modality,
           base_model=args.arch,
+          new_length=1,
           consensus_type=args.crop_fusion_type,
           dropout=args.dropout)
 
@@ -71,7 +72,7 @@ else:
 if args.modality=="OneModel":
     data_loader=torch.utils.data.DataLoader(
         TSNDataSet_one_model("", args.test_list, num_segments=args.test_segments,
-                   new_length=5,
+                   new_length=1,
                    modality=args.modality,
                    image_tmpl="img_{:05d}.jpg",
                    test_mode=True,
@@ -125,7 +126,7 @@ def eval_video(video_data):
     elif args.modality == 'RGBDiff':
         length = 18
     elif args.modality == 'OneModel':
-        length = 25
+        length = 5
     else:
         raise ValueError("Unknown modality "+args.modality)
     with torch.no_grad():
